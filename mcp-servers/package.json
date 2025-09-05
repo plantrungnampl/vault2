@@ -1,0 +1,19 @@
+{
+  "name": "context7-mcp-server",
+  "version": "0.1.0",
+  "description": "Context 7 MCP Server for advanced data analysis",
+  "main": "index.js",
+  "scripts": {
+    "start": "node index.js",
+    "dev": "node --watch index.js"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^0.4.0"
+  },
+  "engines": {
+    "node": ">=18"
+  },
+  "keywords": ["mcp", "context7", "analysis"],
+  "author": "SecureVault Team",
+  "license": "MIT"
+}

@@ -1,0 +1,11 @@
+{
+  "mcp.servers": {
+    "context7": {
+      "command": "node",
+      "args": ["D:\\vault_dev\\mcp-servers\\index.js"],
+      "env": {
+        "NODE_ENV": "development"
+      }
+    }
+  }
+}
