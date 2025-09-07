@@ -56,7 +56,11 @@ export function LoginPage() {
         }, 1000);
       }
     } catch (error: any) {
-      setToast({ message: error.message, type: 'error' });
+      const errorMessage = typeof error === 'string' ? error : 
+        (error?.message ? String(error.message) : 
+        (error?.response?.data?.message ? String(error.response.data.message) : 
+        'Đã xảy ra lỗi không mong muốn'));
+      setToast({ message: errorMessage, type: 'error' });
     }
   };
 

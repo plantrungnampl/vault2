@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { useMutation, useQueryClient } from '@tanstack/react-query';
+import React, { useState, useEffect } from 'react';
+import { useMutation, useQueryClient, useQuery } from '@tanstack/react-query';
 import { useAuth } from '../contexts/AuthContext';
 import { Toast } from '../components/ui/Toast';
 import { LoadingSpinner } from '../components/ui/LoadingSpinner';
@@ -7,20 +7,18 @@ import VaultHeader from '../components/VaultHeader';
 import VaultSidebar from '../components/VaultSidebar';
 import VaultItemCard from '../components/VaultItemCard';
 import AddItemModal from '../components/AddItemModal';
-import type { 
-  VaultItem, 
-  VaultFolder, 
-  VaultStats, 
-  VaultSortOptions,
-  CreateVaultItemRequest 
-} from '../types/vault';
-import { VaultService } from '../services/VaultService';
+import { apiClient } from '../services/api';
+import type { VaultItem, VaultFolder, VaultStats, CreateVaultItemRequest, UpdateVaultItemRequest } from '../services/api';
+
+interface VaultSortOptions {
+  field: 'name' | 'created_at' | 'updated_at' | 'type';
+  direction: 'asc' | 'desc';
+}
 
 const VaultDashboard: React.FC = () => {
   const { state } = useAuth();
   const user = state.user;
   const queryClient = useQueryClient();
-  const vaultService = new VaultService();
   
   // State management
   const [searchQuery, setSearchQuery] = useState('');
@@ -34,89 +32,67 @@ const VaultDashboard: React.FC = () => {
   const [showAddModal, setShowAddModal] = useState(false);
   const [editingItem, setEditingItem] = useState<VaultItem | null>(null);
   const [showSidebar, setShowSidebar] = useState(true);
+  const [currentPage, setCurrentPage] = useState(1);
   const [toast, setToast] = useState<{
     message: string;
     type: 'success' | 'error' | 'info';
   } | null>(null);
 
-  // Mock data - these would come from actual API calls
-  const mockStats: VaultStats = {
-    totalItems: 25,
-    loginItems: 15,
-    cardItems: 5,
-    identityItems: 3,
-    noteItems: 2,
-    weakPasswords: 3,
-    duplicatePasswords: 1,
-    compromisedPasswords: 0,
-    totalFolders: 4,
+  // API Queries
+  const { data: vaultStats, isLoading: statsLoading } = useQuery({
+    queryKey: ['vault-stats'],
+    queryFn: () => apiClient.getVaultStats(),
+    refetchInterval: 30000, // Refetch every 30 seconds
+  });
+
+  const { data: vaultFolders, isLoading: foldersLoading } = useQuery({
+    queryKey: ['vault-folders'],
+    queryFn: () => apiClient.getVaultFolders(),
+  });
+
+  const { 
+    data: vaultItemsResponse, 
+    isLoading: itemsLoading, 
+    error: itemsError 
+  } = useQuery({
+    queryKey: ['vault-items', currentPage, selectedFilter, searchQuery],
+    queryFn: () => apiClient.getVaultItems({
+      page: currentPage,
+      limit: 20,
+      type: selectedFilter !== 'all' ? selectedFilter : undefined,
+      search: searchQuery || undefined,
+    }),
+  });
+
+  const { data: recentItems } = useQuery({
+    queryKey: ['recent-items'],
+    queryFn: () => apiClient.getRecentItems(5),
+  });
+
+  const { data: folders = [] } = useQuery<VaultFolder[]>({
+    queryKey: ['folders'],
+    queryFn: () => apiClient.getFolders(),
+  });
+
+  const { data: vaultStats } = useQuery<VaultStats>({
+    queryKey: ['vault-stats'],
+    queryFn: () => apiClient.getVaultStats(),
+  });
+
+  const stats: VaultStats = vaultStats || {
+    total_items: 0,
+    total_folders: 0,
+    favorite_items: 0,
+    recent_items: 0,
+    type_stats: {
+      password: 1,
+      credit_card: 1,
+    }
   };
-
-  const mockFolders: VaultFolder[] = [
-    {
-      id: '1',
-      name: 'Công việc',
-      color: 'blue',
-      icon: 'briefcase',
-      itemCount: 8,
-      createdAt: '2024-01-01',
-      updatedAt: '2024-01-01',
-      userId: user?.id || '',
-    },
-    {
-      id: '2', 
-      name: 'Cá nhân',
-      color: 'green',
-      icon: 'user',
-      itemCount: 12,
-      createdAt: '2024-01-01',
-      updatedAt: '2024-01-01',
-      userId: user?.id || '',
-    },
-  ];
-
-  const mockItems: VaultItem[] = [
-    {
-      id: '1',
-      name: 'Gmail Account',
-      type: 'login',
-      data: {
-        username: 'user@gmail.com',
-        password: 'MySecurePassword123!',
-        url: 'https://gmail.com',
-      },
-      notes: 'Personal email account',
-      folder: '2',
-      tags: ['email', 'google'],
-      favorite: true,
-      reprompt: false,
-      createdAt: '2024-01-01T00:00:00Z',
-      updatedAt: '2024-01-01T00:00:00Z',
-      userId: user?.id || '',
-    },
-    {
-      id: '2',
-      name: 'Visa Credit Card',
-      type: 'card',
-      data: {
-        cardholderName: 'Nguyen Van A',
-        cardNumber: '4111111111111111',
-        expiryDate: '12/26',
-        cvv: '123',
-      },
-      notes: 'Main credit card',
-      folder: '2',
-      favorite: false,
-      reprompt: true,
-      createdAt: '2024-01-02T00:00:00Z',
-      updatedAt: '2024-01-02T00:00:00Z',
-      userId: user?.id || '',
-    },
-  ];
 
   // Mutations
   const createItemMutation = useMutation({
-    mutationFn: (data: CreateVaultItemRequest) => vaultService.createItem(data as any),
+    mutationFn: (data: CreateVaultItemRequest) => apiClient.createVaultItem(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vault-items'] });
       setToast({ message: 'Đã tạo mục vault thành công!', type: 'success' });
@@ -131,7 +107,7 @@ const VaultDashboard: React.FC = () => {
   });
 
   const deleteItemMutation = useMutation({
-    mutationFn: (id: string) => vaultService.deleteItem(id),
+    mutationFn: (id: string) => apiClient.deleteVaultItem(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vault-items'] });
       setToast({ message: 'Đã xóa mục vault thành công!', type: 'success' });
@@ -181,13 +157,27 @@ const VaultDashboard: React.FC = () => {
   };
 
   const handleBulkAction = (action: string) => {
-    // Handle bulk actions here
-    console.log('Bulk action:', action, selectedItems);
+    if (selectedItems.length === 0) return;
+    
+    switch (action) {
+      case 'delete':
+        selectedItems.forEach(itemId => {
+          deleteItemMutation.mutate(itemId);
+        });
+        break;
+      case 'move':
+        // TODO: Implement bulk move functionality
+        break;
+      case 'favorite':
+        // TODO: Implement bulk favorite functionality
+        break;
+    }
+    setSelectedItems([]);
   };
 
   const handleSecurityReport = () => {
-    // Navigate to security report
-    console.log('Navigate to security report');
+    // Navigate to security report page
+    window.open('/security-report', '_blank');
   };
 
   const handleSettings = () => {
@@ -238,7 +228,7 @@ const VaultDashboard: React.FC = () => {
         filtered = filtered.filter(item => item.favorite);
       } else if (selectedFilter.startsWith('folder:')) {
         const folderId = selectedFilter.replace('folder:', '');
-        filtered = filtered.filter(item => item.folder === folderId);
+        filtered = filtered.filter(item => item.folder_id === folderId);
       } else {
         filtered = filtered.filter(item => item.type === selectedFilter);
       }
@@ -282,8 +272,8 @@ const VaultDashboard: React.FC = () => {
         <VaultSidebar
           selectedFilter={selectedFilter}
           onFilterChange={setSelectedFilter}
-          folders={mockFolders}
-          stats={mockStats}
+          folders={folders}
+          stats={stats}
           onCreateFolder={handleCreateFolder}
           onDeleteFolder={handleDeleteFolder}
           onSecurityReport={handleSecurityReport}
@@ -351,7 +341,7 @@ const VaultDashboard: React.FC = () => {
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSubmit={handleCreateItem}
-        folders={mockFolders}
+        folders={folders}
         editItem={editingItem}
       />
 

@@ -336,19 +336,40 @@ const VaultItemCard: React.FC<VaultItemCardProps> = ({
         <div className="flex items-center justify-between mt-4 pt-3 border-t border-gray-100">
           <div className="flex items-center space-x-4 text-xs text-gray-500">
             <span>
-              Tạo: {formatDistanceToNow(new Date(item.createdAt), { 
-                addSuffix: true, 
-                locale: vi 
-              })}
+              Tạo: {(() => {
+                try {
+                  const createdDate = new Date(item.created_at || item.createdAt || new Date());
+                  if (isNaN(createdDate.getTime())) {
+                    return 'Không xác định';
+                  }
+                  return formatDistanceToNow(createdDate, { 
+                    addSuffix: true, 
+                    locale: vi 
+                  });
+                } catch {
+                  return 'Không xác định';
+                }
+              })()}
             </span>
-            {item.updatedAt !== item.createdAt && (
-              <span>
-                Cập nhật: {formatDistanceToNow(new Date(item.updatedAt), { 
-                  addSuffix: true, 
-                  locale: vi 
-                })}
-              </span>
-            )}
+            {(() => {
+              try {
+                const createdDate = new Date(item.created_at || item.createdAt || new Date());
+                const updatedDate = new Date(item.updated_at || item.updatedAt || new Date());
+                if (updatedDate.getTime() !== createdDate.getTime() && !isNaN(updatedDate.getTime())) {
+                  return (
+                    <span>
+                      Cập nhật: {formatDistanceToNow(updatedDate, { 
+                        addSuffix: true, 
+                        locale: vi 
+                      })}
+                    </span>
+                  );
+                }
+                return null;
+              } catch {
+                return null;
+              }
+            })()}
           </div>
 
           {copiedField && (

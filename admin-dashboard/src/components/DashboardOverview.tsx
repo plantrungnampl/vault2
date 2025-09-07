@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import { 
   Users, 
   Shield, 
@@ -9,8 +9,12 @@ import {
   AlertTriangle,
   Database,
   Server,
-  Clock
+  Clock,
+  Loader2
 } from 'lucide-react';
+import { apiClient } from '../services/api';
+import type { DashboardStats, SystemHealth } from '../services/api';
+import { useToast } from './ui/Toast';
 
 interface StatsCardProps {
   title: string;
@@ -47,18 +51,73 @@ const StatsCard: React.FC<StatsCardProps> = ({ title, value, change, icon, trend
   );
 };
 
-interface DashboardOverviewProps {
-  stats: {
-    totalUsers: number;
-    activeUsers: number;
-    totalVaultItems: number;
-    securityIncidents: number;
-    systemUptime: string;
-    storageUsed: string;
-  };
-}
+interface DashboardOverviewProps {}
 
-const DashboardOverview: React.FC<DashboardOverviewProps> = ({ stats }) => {
+const DashboardOverview: React.FC<DashboardOverviewProps> = () => {
+  const [stats, setStats] = useState<DashboardStats | null>(null);
+  const [systemHealth, setSystemHealth] = useState<SystemHealth | null>(null);
+  const [loading, setLoading] = useState(true);
+  const { showToast } = useToast();
+
+  useEffect(() => {
+    loadDashboardData();
+  }, []);
+
+  const loadDashboardData = async () => {
+    try {
+      setLoading(true);
+      const [statsData, healthData] = await Promise.all([
+        apiClient.getDashboardStats(),
+        apiClient.getSystemHealth().catch(() => ({
+          database: { connected: true, latency: 0 },
+          redis: { connected: true, latency: 0 },
+          services: { auth: true, vault: true, audit: true }
+        }))
+      ]);
+      
+      setStats(statsData);
+      setSystemHealth(healthData);
+    } catch (error) {
+      console.error('Failed to load dashboard data:', error);
+      showToast('Không thể tải dữ liệu dashboard', 'error');
+      // Set default mock data on error
+      setStats({
+        totalUsers: 0,
+        activeUsers: 0,
+        totalVaultItems: 0,
+        securityIncidents: 0,
+        systemUptime: "99.9%",
+        storageUsed: "2.1GB",
+        mfaEnabledUsers: 0,
+        newUsersThisMonth: 0
+      });
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <span className="ml-2 text-gray-600">Đang tải dữ liệu...</span>
+      </div>
+    );
+  }
+
+  if (!stats) {
+    return (
+      <div className="text-center py-12">
+        <p className="text-gray-500">Không thể tải dữ liệu dashboard</p>
+        <button 
+          onClick={loadDashboardData}
+          className="mt-4 px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700"
+        >
+          Thử lại
+        </button>
+      </div>
+    );
+  }
   return (
     <div className="space-y-6">
       {/* Header */}
@@ -141,31 +200,55 @@ const DashboardOverview: React.FC<DashboardOverviewProps> = ({ stats }) => {
           <div className="space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Server className="h-5 w-5 text-green-600" />
+                <Server className={`h-5 w-5 ${systemHealth?.services?.auth ? 'text-green-600' : 'text-red-600'}`} />
                 <span className="text-sm font-medium">API Server</span>
               </div>
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Hoạt động</span>
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                systemHealth?.services?.auth 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {systemHealth?.services?.auth ? 'Hoạt động' : 'Lỗi'}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Database className="h-5 w-5 text-green-600" />
+                <Database className={`h-5 w-5 ${systemHealth?.database?.connected ? 'text-green-600' : 'text-red-600'}`} />
                 <span className="text-sm font-medium">Cơ sở dữ liệu</span>
               </div>
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">Kết nối</span>
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                systemHealth?.database?.connected 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {systemHealth?.database?.connected ? 'Kết nối' : 'Mất kết nối'}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Key className="h-5 w-5 text-green-600" />
-                <span className="text-sm font-medium">Dịch vụ mã hóa</span>
+                <Key className={`h-5 w-5 ${systemHealth?.services?.vault ? 'text-green-600' : 'text-red-600'}`} />
+                <span className="text-sm font-medium">Dịch vụ vault</span>
               </div>
-              <span className="px-2 py-1 bg-green-100 text-green-800 text-xs rounded-full">An toàn</span>
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                systemHealth?.services?.vault 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-red-100 text-red-800'
+              }`}>
+                {systemHealth?.services?.vault ? 'An toàn' : 'Lỗi'}
+              </span>
             </div>
             <div className="flex items-center justify-between">
               <div className="flex items-center space-x-2">
-                <Shield className="h-5 w-5 text-yellow-600" />
-                <span className="text-sm font-medium">Backup System</span>
+                <Shield className={`h-5 w-5 ${systemHealth?.services?.audit ? 'text-green-600' : 'text-yellow-600'}`} />
+                <span className="text-sm font-medium">Dịch vụ audit</span>
               </div>
-              <span className="px-2 py-1 bg-yellow-100 text-yellow-800 text-xs rounded-full">Đang chạy</span>
+              <span className={`px-2 py-1 text-xs rounded-full ${
+                systemHealth?.services?.audit 
+                  ? 'bg-green-100 text-green-800' 
+                  : 'bg-yellow-100 text-yellow-800'
+              }`}>
+                {systemHealth?.services?.audit ? 'Hoạt động' : 'Cảnh báo'}
+              </span>
             </div>
           </div>
         </div>

@@ -17,11 +17,19 @@ import (
 	"securevault/internal/redis"
 	"securevault/internal/security"
 	"securevault/internal/services"
+	"securevault/internal/websocket"
 
 	"github.com/gin-gonic/gin"
+	"github.com/joho/godotenv"
 )
 
 func main() {
+	// Load .env file
+	if err := godotenv.Load(); err != nil {
+		// .env file is optional, so we just log and continue
+		fmt.Printf("Warning: .env file not found: %v\n", err)
+	}
+
 	// Initialize logger
 	logger.InitLogger()
 	log := logger.GetLogger()
@@ -38,25 +46,44 @@ func main() {
 		}
 	}
 
-	// Initialize database (mock for now)
-	db, err := database.InitDB(cfg)
-	if err != nil {
-		log.Warn("Failed to initialize database, using mock", "error", err)
-		db = nil
-	}
+	// Initialize database
+	db := database.InitDB(cfg)
 
-	// Initialize Redis (mock for now)
+	// Initialize Redis
 	redisClient, err := redis.InitRedis(cfg)
 	if err != nil {
-		log.Warn("Failed to initialize Redis, using mock", "error", err)
-		redisClient = &redis.Client{}
+		log.Fatal("Failed to initialize Redis", "error", err)
 	}
 
-	// Initialize security services
+	// Initialize crypto service
 	cryptoService := security.NewCryptoService(cfg)
-	authService := services.NewAuthService(db, redisClient, cryptoService, cfg)
-	auditService := services.NewAuditService(db, cfg)
-	vaultService := services.NewVaultService(db, cryptoService, auditService, cfg)
+	
+	// Initialize security services
+	authService := services.NewAuthService(cfg)
+	auditService := services.NewAuditService(cfg.Security.HMACSecret)
+	vaultService := services.NewVaultService()
+	securityService := services.NewSecurityService()
+	
+	// Initialize RBAC services
+	rbacService := services.NewRBACService(db, cfg)
+	rbacInitService := services.NewRBACInitService(db)
+	
+	// Initialize real MFA service with actual providers
+	mfaService := services.NewRealMFAService(cfg, cryptoService, auditService)
+
+	// Initialize RBAC system with real data
+	if err := rbacInitService.InitializeRBACSystem(context.Background()); err != nil {
+		log.Error("Failed to initialize RBAC system", "error", err)
+	}
+
+	// Initialize security monitoring service
+	securityMonitor := services.NewSecurityMonitorService(cfg, auditService)
+	securityMonitor.Start()
+	defer securityMonitor.Stop()
+
+	// Initialize WebSocket hub
+	wsHub := websocket.NewHub()
+	go wsHub.Run()
 
 	// Set gin mode
 	if cfg.Server.Environment == "production" {
@@ -87,9 +114,23 @@ func main() {
 			auth.POST("/login", api.Login(authService, auditService))
 			auth.POST("/logout", middleware.RequireAuth(authService), api.Logout(authService, auditService))
 			auth.POST("/refresh", api.RefreshToken(authService, auditService))
+			auth.POST("/verify-mfa", api.VerifyMFA(authService, mfaService, nil, auditService))
 			auth.GET("/profile", middleware.RequireAuth(authService), api.GetProfile(authService))
 			auth.PUT("/profile", middleware.RequireAuth(authService), api.UpdateProfile(authService, auditService))
 			auth.POST("/change-password", middleware.RequireAuth(authService), api.ChangePassword(authService, auditService))
+		}
+
+		// MFA management routes
+		mfa := v1.Group("/mfa")
+		mfa.Use(middleware.RequireAuth(authService))
+		{
+			mfa.POST("/totp/setup", api.SetupTOTP(mfaService, auditService))
+			mfa.POST("/totp/verify", api.VerifyTOTPSetup(mfaService, auditService))
+			mfa.POST("/sms/setup", api.SetupSMS(mfaService, auditService))
+			mfa.POST("/sms/verify", api.VerifySMSSetup(mfaService, auditService))
+			mfa.POST("/email/send", api.SendEmailMFA(mfaService, auditService))
+			mfa.POST("/backup-code/verify", api.VerifyBackupCode(mfaService, auditService))
+			mfa.GET("/status", api.GetMFAStatus(mfaService))
 		}
 
 		// Vault routes
@@ -97,25 +138,28 @@ func main() {
 		vault.Use(middleware.RequireAuth(authService))
 		{
 			vault.GET("/items", api.GetVaultItems(vaultService))
-			vault.POST("/items", api.CreateVaultItem(vaultService, auditService))
+			vault.POST("/items", api.CreateVaultItem(vaultService))
 			vault.GET("/items/:id", api.GetVaultItem(vaultService))
-			vault.PUT("/items/:id", api.UpdateVaultItem(vaultService, auditService))
-			vault.DELETE("/items/:id", api.DeleteVaultItem(vaultService, auditService))
-			vault.POST("/items/:id/share", api.ShareVaultItem(vaultService, auditService))
-			vault.GET("/shared", api.GetSharedItems(vaultService))
-			vault.POST("/folders", api.CreateFolder(vaultService, auditService))
+			vault.PUT("/items/:id", api.UpdateVaultItem(vaultService))
+			vault.DELETE("/items/:id", api.DeleteVaultItem(vaultService))
+			vault.POST("/items/:id/favorite", api.ToggleFavorite(vaultService))
+			vault.POST("/folders", api.CreateFolder(vaultService))
 			vault.GET("/folders", api.GetFolders(vaultService))
-			vault.PUT("/folders/:id", api.UpdateFolder(vaultService, auditService))
-			vault.DELETE("/folders/:id", api.DeleteFolder(vaultService, auditService))
+			vault.PUT("/folders/:id", api.UpdateFolder(vaultService))
+			vault.DELETE("/folders/:id", api.DeleteFolder(vaultService))
+			vault.GET("/stats", api.GetVaultStats(vaultService))
+			vault.GET("/recent", api.GetRecentItems(vaultService))
 		}
 
 		// Search routes
 		search := v1.Group("/search")
 		search.Use(middleware.RequireAuth(authService))
 		{
-			search.GET("/", api.SearchVaultItems(vaultService))
-			search.GET("/suggestions", api.GetSearchSuggestions(vaultService))
+			search.GET("/items", api.SearchVaultItems(vaultService))
 		}
+
+		// WebSocket endpoint (with adapter to match interface)
+		v1.GET("/ws", websocket.HandleWebSocket(wsHub, &authServiceAdapter{authService}))
 
 		// Admin routes
 		admin := v1.Group("/admin")
@@ -134,23 +178,36 @@ func main() {
 			// System management
 			admin.GET("/system/health", api.AdminSystemHealth(db, redisClient))
 			admin.GET("/system/metrics", api.AdminSystemMetrics())
-			admin.GET("/system/config", api.AdminGetConfig(cfg))
-			admin.PUT("/system/config", api.AdminUpdateConfig(cfg, auditService))
 
 			// Security management
 			admin.GET("/security/policies", api.GetSecurityPolicies(authService))
 			admin.PUT("/security/policies", api.UpdateSecurityPolicies(authService, auditService))
-			admin.GET("/security/incidents", api.GetSecurityIncidents(auditService))
-			admin.POST("/security/incidents/:id/resolve", api.ResolveSecurityIncident(auditService))
+			admin.GET("/security/incidents", api.GetSecurityIncidents(securityService))
+			admin.POST("/security/incidents/:id/resolve", api.ResolveSecurityIncident(securityService, auditService))
+			admin.GET("/security/stats", api.GetSecurityStats(securityService))
 
 			// Audit management
 			admin.GET("/audit/logs", api.AdminGetAllAuditLogs(auditService))
-			admin.GET("/audit/reports", api.GenerateComplianceReports(auditService))
 			admin.POST("/audit/export", api.ExportAuditLogs(auditService))
-
-			// Key management
-			admin.POST("/keys/rotate", api.RotateEncryptionKeys(cryptoService, auditService))
-			admin.GET("/keys/status", api.GetKeyStatus(cryptoService))
+			
+			// RBAC management
+			rbac := admin.Group("/rbac")
+			{
+				// Role management
+				rbac.GET("/roles", api.GetAllRoles(rbacService))
+				rbac.GET("/roles/:id/permissions", api.GetRolePermissions(rbacService, auditService))
+				rbac.POST("/roles/:id/permissions/grant", api.GrantPermissionToRole(rbacService, auditService))
+				rbac.POST("/roles/:id/permissions/:permission_id/revoke", api.RevokePermissionFromRole(rbacService, auditService))
+				
+				// User permission management
+				rbac.GET("/users/:id/permissions", api.GetUserPermissions(rbacService, auditService))
+				rbac.POST("/users/:id/permissions/grant", api.GrantPermissionToUser(rbacService, auditService))
+				rbac.POST("/users/:id/permissions/:permission_id/revoke", api.RevokePermissionFromUser(rbacService, auditService))
+				
+				// Permission management
+				rbac.GET("/permissions", api.GetAllPermissions(rbacService))
+				rbac.POST("/check-permission", api.CheckPermission(rbacService, auditService))
+			}
 		}
 	}
 
@@ -188,4 +245,13 @@ func main() {
 	}
 
 	log.Info("Server exited")
+}
+
+// authServiceAdapter adapts AuthService to websocket.AuthValidator interface
+type authServiceAdapter struct {
+	authService *services.AuthService
+}
+
+func (a *authServiceAdapter) ValidateToken(token string) (websocket.Claims, error) {
+	return a.authService.ValidateToken(token)
 }

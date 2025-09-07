@@ -1,14 +1,18 @@
 import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
+import { useTranslation } from 'react-i18next';
 import { AuthProvider, useAuth } from './contexts/AuthContext';
+import { LanguageProvider } from './contexts/LanguageContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
-import { VaultDashboard } from './pages/VaultDashboard';
+import VaultDashboard from './pages/VaultDashboard';
 import { AdminDashboard } from './pages/AdminDashboard';
 import { ProfilePage } from './pages/ProfilePage';
 import { SettingsPage } from './pages/SettingsPage';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
 import { LoadingSpinner } from './components/ui/LoadingSpinner';
+import { ErrorBoundary } from './components/ErrorBoundary';
+import './i18n';
 import './App.css';
 
 // Create a client
@@ -23,6 +27,7 @@ const queryClient = new QueryClient({
 
 function AppRoutes() {
   const { state } = useAuth();
+  const { t } = useTranslation();
 
   if (state.isLoading) {
     return <LoadingSpinner />;
@@ -97,12 +102,12 @@ function AppRoutes() {
           <div className="min-h-screen flex items-center justify-center bg-gray-50">
             <div className="text-center">
               <h1 className="text-4xl font-bold text-gray-900 mb-4">404</h1>
-              <p className="text-gray-600 mb-8">Trang không tồn tại</p>
+              <p className="text-gray-600 mb-8">{t('errors.notFound')}</p>
               <a 
                 href="/vault" 
                 className="inline-flex items-center px-4 py-2 border border-transparent text-base font-medium rounded-md text-white bg-blue-600 hover:bg-blue-700"
               >
-                Về trang chủ
+                {t('dashboard.overview')}
               </a>
             </div>
           </div>
@@ -114,15 +119,21 @@ function AppRoutes() {
 
 function App() {
   return (
-    <QueryClientProvider client={queryClient}>
-      <AuthProvider>
-        <Router>
-          <div className="App">
-            <AppRoutes />
-          </div>
-        </Router>
-      </AuthProvider>
-    </QueryClientProvider>
+    <ErrorBoundary>
+      <QueryClientProvider client={queryClient}>
+        <LanguageProvider>
+          <AuthProvider>
+            <Router>
+              <div className="App">
+                <ErrorBoundary>
+                  <AppRoutes />
+                </ErrorBoundary>
+              </div>
+            </Router>
+          </AuthProvider>
+        </LanguageProvider>
+      </QueryClientProvider>
+    </ErrorBoundary>
   );
 }
 

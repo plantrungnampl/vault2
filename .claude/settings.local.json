@@ -1,0 +1,21 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(go mod:*)",
+      "Bash(go build:*)",
+      "Bash(go get:*)",
+      "Bash(npm run build:*)",
+      "Bash(dir)",
+      "Bash(npm install:*)",
+      "Bash(go run:*)",
+      "Bash(npm start)",
+      "Bash(npm run dev:*)",
+      "Bash(timeout:*)",
+      "Bash(find:*)",
+      "Bash(npm run lint:*)",
+      "Bash(npm run type-check:*)"
+    ],
+    "deny": [],
+    "ask": []
+  }
+}

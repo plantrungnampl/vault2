@@ -3,9 +3,12 @@ package api
 import (
 	"net/http"
 
+	"securevault/internal/errors"
 	"securevault/internal/services"
+	"securevault/internal/validation"
 
 	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
 )
 
 // Register creates a new user account
@@ -13,23 +16,43 @@ func Register(authService *services.AuthService, auditService *services.AuditSer
 	return func(c *gin.Context) {
 		var req services.RegisterRequest
 
+		// Bind JSON request
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			errors.HandleValidationError(c, err, "Invalid request format")
 			return
 		}
 
-		// Get client IP and user agent
-		ipAddress := c.ClientIP()
-		userAgent := c.GetHeader("User-Agent")
+		// Comprehensive validation
+		emailValidation := validation.ValidateEmail(req.Email)
+		passwordValidation := validation.ValidatePassword(req.Password)
+		firstNameValidation := validation.ValidateName(req.FirstName, "firstName")
+		lastNameValidation := validation.ValidateName(req.LastName, "lastName")
+
+		combinedValidation := validation.CombineValidations(
+			emailValidation,
+			passwordValidation,
+			firstNameValidation,
+			lastNameValidation,
+		)
+
+		if !combinedValidation.Valid {
+			appErr := errors.NewValidationError("Validation failed", "")
+			c.JSON(appErr.Code, gin.H{
+				"error":             appErr,
+				"validation_errors": combinedValidation.Errors,
+				"request_id":        c.GetString("request_id"),
+			})
+			return
+		}
 
 		// Register user
-		response, err := authService.Register(&req, ipAddress, userAgent)
+		response, err := authService.Register(req)
 		if err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			errors.HandleError(c, errors.NewBadRequestError("Registration failed", err.Error()))
 			return
 		}
 
-		c.JSON(http.StatusCreated, response)
+		errors.Created(c, response, "User registered successfully")
 	}
 }
 
@@ -38,8 +61,25 @@ func Login(authService *services.AuthService, auditService *services.AuditServic
 	return func(c *gin.Context) {
 		var req services.LoginRequest
 
+		// Bind JSON request
 		if err := c.ShouldBindJSON(&req); err != nil {
-			c.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
+			errors.HandleValidationError(c, err, "Invalid login request")
+			return
+		}
+
+		// Validate login request
+		emailValidation := validation.ValidateEmail(req.Email)
+		passwordValidation := validation.ValidateRequired(req.Password, "password")
+
+		combinedValidation := validation.CombineValidations(emailValidation, passwordValidation)
+
+		if !combinedValidation.Valid {
+			appErr := errors.NewValidationError("Validation failed", "")
+			c.JSON(appErr.Code, gin.H{
+				"error":             appErr,
+				"validation_errors": combinedValidation.Errors,
+				"request_id":        c.GetString("request_id"),
+			})
 			return
 		}
 
@@ -48,13 +88,13 @@ func Login(authService *services.AuthService, auditService *services.AuditServic
 		userAgent := c.GetHeader("User-Agent")
 
 		// Login user
-		response, err := authService.Login(&req, ipAddress, userAgent)
+		response, err := authService.Login(req, ipAddress, userAgent)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
+			errors.HandleError(c, errors.NewAuthenticationError("Invalid credentials"))
 			return
 		}
 
-		c.JSON(http.StatusOK, response)
+		errors.Success(c, response, "Login successful")
 	}
 }
 
@@ -63,19 +103,15 @@ func Logout(authService *services.AuthService, auditService *services.AuditServi
 	return func(c *gin.Context) {
 		sessionID := c.GetString("session_id")
 
-		// For now, just simulate logout
+		// Validate session
 		if sessionID == "" {
-			c.JSON(http.StatusBadRequest, gin.H{"error": "Invalid session"})
+			errors.HandleError(c, errors.NewAuthenticationError("Invalid session"))
 			return
 		}
 
 		// In real implementation, would parse UUID and call authService.Logout
-		// if err := authService.Logout(sessionUUID); err != nil {
-		//	c.JSON(http.StatusInternalServerError, gin.H{"error": "Failed to logout"})
-		//	return
-		// }
-
-		c.JSON(http.StatusOK, gin.H{"message": "Logged out successfully"})
+		// For now, just simulate logout
+		errors.NoContent(c, "Logged out successfully")
 	}
 }
 
@@ -192,7 +228,10 @@ func ChangePassword(authService *services.AuthService, auditService *services.Au
 }
 
 // Helper function to parse UUID
-func parseUUID(s string) (interface{}, error) {
-	// For now, just return the string - in real implementation would parse to UUID
-	return s, nil
+func parseUUID(s string) (uuid.UUID, error) {
+	id, err := uuid.Parse(s)
+	if err != nil {
+		return uuid.UUID{}, err
+	}
+	return id, nil
 }

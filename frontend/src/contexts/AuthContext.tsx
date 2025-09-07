@@ -1,5 +1,8 @@
 import React, { createContext, useContext, useReducer, useEffect } from 'react';
 import axios from 'axios';
+import { apiClient } from '../services/api';
+
+const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
 
 // Types
 export interface User {
@@ -146,51 +149,11 @@ const AuthContext = createContext<{
 export interface RegisterData {
   email: string;
   password: string;
-  confirm_password: string;
-  first_name: string;
-  last_name: string;
+  firstName: string;
+  lastName: string;
 }
 
-// API configuration
-const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8080/api/v1';
-
-// Setup axios interceptor for auto token refresh
-axios.interceptors.response.use(
-  (response) => response,
-  async (error) => {
-    const originalRequest = error.config;
-
-    if (error.response?.status === 401 && !originalRequest._retry) {
-      originalRequest._retry = true;
-
-      const refreshToken = localStorage.getItem('refresh_token');
-      if (refreshToken) {
-        try {
-          const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
-            refresh_token: refreshToken,
-          });
-
-          const { access_token, refresh_token: newRefreshToken } = response.data;
-          localStorage.setItem('access_token', access_token);
-          localStorage.setItem('refresh_token', newRefreshToken);
-
-          // Update the authorization header
-          originalRequest.headers.Authorization = `Bearer ${access_token}`;
-
-          return axios(originalRequest);
-        } catch (refreshError) {
-          // Refresh failed, redirect to login
-          localStorage.removeItem('access_token');
-          localStorage.removeItem('refresh_token');
-          window.location.href = '/login';
-          return Promise.reject(refreshError);
-        }
-      }
-    }
-
-    return Promise.reject(error);
-  }
-);
+// API configuration - using centralized apiClient
 
 // Provider component
 export function AuthProvider({ children }: { children: React.ReactNode }) {
@@ -220,7 +183,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       if (token) {
         try {
           dispatch({ type: 'SET_LOADING', payload: true });
-          const response = await axios.get(`${API_BASE_URL}/auth/profile`);
+          const response = await apiClient.get('/auth/profile');
           dispatch({
             type: 'LOGIN_SUCCESS',
             payload: {
@@ -247,7 +210,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       dispatch({ type: 'LOGIN_START' });
 
-      const response = await axios.post(`${API_BASE_URL}/auth/login`, {
+      const response = await apiClient.post('/auth/login', {
         email,
         password,
         mfa_code: mfaCode,
@@ -286,7 +249,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
-      await axios.post(`${API_BASE_URL}/auth/register`, data);
+      await apiClient.post('/auth/register', data);
 
       // Registration successful, you might want to auto-login or redirect
       dispatch({ type: 'SET_LOADING', payload: false });
@@ -301,7 +264,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       const refreshToken = localStorage.getItem('refresh_token');
       if (refreshToken) {
-        await axios.post(`${API_BASE_URL}/auth/logout`, {
+        await apiClient.post('/auth/logout', {
           refresh_token: refreshToken,
         });
       }
@@ -319,7 +282,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     try {
       dispatch({ type: 'SET_LOADING', payload: true });
 
-      const response = await axios.post(`${API_BASE_URL}/auth/verify-mfa`, {
+      const response = await apiClient.post('/auth/verify-mfa', {
         mfa_code: code,
       });
 
@@ -346,7 +309,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const updateProfile = async (data: Partial<User>) => {
     try {
-      const response = await axios.put(`${API_BASE_URL}/auth/profile`, data);
+      const response = await apiClient.put('/auth/profile', data);
       dispatch({ type: 'UPDATE_USER', payload: response.data });
     } catch (error: any) {
       const errorMessage = error.response?.data?.error || 'Cập nhật thông tin thất bại';
@@ -361,7 +324,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         return false;
       }
 
-      const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {
+      const response = await apiClient.post('/auth/refresh', {
         refresh_token: refreshToken,
       });
 
@@ -374,7 +337,6 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       return false;
     }
   };
-
   return (
     <AuthContext.Provider
       value={{

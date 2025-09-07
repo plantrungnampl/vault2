@@ -37,7 +37,10 @@ func RequireAuth(authService *services.AuthService) gin.HandlerFunc {
 			return
 		}
 
-		// Set user information in context
+		// Set claims in context
+		c.Set("claims", claims)
+		
+		// Set user information in context for easy access
 		c.Set("user_id", claims.UserID.String())
 		c.Set("user_email", claims.Email)
 		c.Set("user_role", string(claims.Role))

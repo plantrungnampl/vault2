@@ -71,16 +71,39 @@ type SecurityConfig struct {
 	HMACSecret          string        `mapstructure:"hmac_secret"`
 	CSRFSecret          string        `mapstructure:"csrf_secret"`
 	PasswordHistory     int           `mapstructure:"password_history"`
+	GeoAPIKey           string        `mapstructure:"geo_api_key"`
 }
 
 type MFAConfig struct {
-	TOTPIssuer     string `mapstructure:"totp_issuer"`
-	TOTPKeySize    int    `mapstructure:"totp_key_size"`
-	WebAuthnRPID   string `mapstructure:"webauthn_rp_id"`
-	WebAuthnRPName string `mapstructure:"webauthn_rp_name"`
-	WebAuthnOrigin string `mapstructure:"webauthn_origin"`
-	SMSProvider    string `mapstructure:"sms_provider"`
-	SMSAPIKey      string `mapstructure:"sms_api_key"`
+	TOTPIssuer          string `mapstructure:"totp_issuer"`
+	TOTPKeySize         int    `mapstructure:"totp_key_size"`
+	WebAuthnRPID        string `mapstructure:"webauthn_rp_id"`
+	WebAuthnRPName      string `mapstructure:"webauthn_rp_name"`
+	WebAuthnOrigin      string `mapstructure:"webauthn_origin"`
+	
+	// SMS Provider Configuration (Twilio)
+	TwilioSID           string `mapstructure:"twilio_sid"`
+	TwilioAuthToken     string `mapstructure:"twilio_auth_token"`
+	TwilioPhoneNumber   string `mapstructure:"twilio_phone_number"`
+	
+	// Email Configuration
+	EmailEnabled        bool   `mapstructure:"email_enabled"`
+	SMTPHost           string `mapstructure:"smtp_host"`
+	SMTPPort           int    `mapstructure:"smtp_port"`
+	SMTPUser           string `mapstructure:"smtp_user"`
+	SMTPPassword       string `mapstructure:"smtp_password"`
+	FromEmail          string `mapstructure:"from_email"`
+	
+	// Push Notification Configuration (Pushover)
+	PushoverEnabled     bool   `mapstructure:"pushover_enabled"`
+	PushoverAppToken    string `mapstructure:"pushover_app_token"`
+	PushoverUserKey     string `mapstructure:"pushover_user_key"`
+	
+	// MFA Policy Settings
+	RequiredMethods     int    `mapstructure:"required_methods"`     // How many MFA methods required
+	GracePeriod         int    `mapstructure:"grace_period"`         // Hours before MFA is required
+	MaxAttempts         int    `mapstructure:"max_attempts"`
+	LockoutDuration     int    `mapstructure:"lockout_duration"`     // Minutes
 }
 
 type LoggingConfig struct {

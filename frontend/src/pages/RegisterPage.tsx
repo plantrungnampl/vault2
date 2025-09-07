@@ -81,9 +81,8 @@ export function RegisterPage() {
       const registerData: RegisterData = {
         email: data.email,
         password: data.password,
-        confirm_password: data.confirm_password,
-        first_name: data.first_name,
-        last_name: data.last_name,
+        firstName: data.first_name,
+        lastName: data.last_name,
       };
 
       await registerUser(registerData);
@@ -97,7 +96,11 @@ export function RegisterPage() {
         navigate('/login');
       }, 2000);
     } catch (error: any) {
-      setToast({ message: error.message, type: 'error' });
+      const errorMessage = typeof error === 'string' ? error : 
+        (error?.message ? String(error.message) : 
+        (error?.response?.data?.message ? String(error.response.data.message) : 
+        'Đã xảy ra lỗi không mong muốn'));
+      setToast({ message: errorMessage, type: 'error' });
     }
   };
 

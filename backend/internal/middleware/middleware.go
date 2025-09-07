@@ -80,8 +80,8 @@ func CORS(cfg *config.Config) gin.HandlerFunc {
 	}
 }
 
-// SecurityHeaders middleware adds security headers
-func SecurityHeaders() gin.HandlerFunc {
+// BasicSecurityHeaders middleware adds basic security headers
+func BasicSecurityHeaders() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		c.Header("X-Content-Type-Options", "nosniff")
 		c.Header("X-Frame-Options", "DENY")

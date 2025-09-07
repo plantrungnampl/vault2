@@ -1,0 +1,464 @@
+{
+  "common": {
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "register": "Đăng ký",
+    "password": "Mật khẩu",
+    "email": "Email",
+    "firstName": "Tên",
+    "lastName": "Họ",
+    "save": "Lưu",
+    "cancel": "Hủy",
+    "delete": "Xóa",
+    "edit": "Sửa",
+    "add": "Thêm",
+    "search": "Tìm kiếm",
+    "loading": "Đang tải...",
+    "success": "Thành công",
+    "error": "Lỗi",
+    "warning": "Cảnh báo",
+    "info": "Thông tin",
+    "yes": "Có",
+    "no": "Không",
+    "confirm": "Xác nhận",
+    "submit": "Gửi",
+    "reset": "Đặt lại",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "refresh": "Làm mới",
+    "settings": "Cài đặt",
+    "profile": "Hồ sơ",
+    "help": "Trợ giúp",
+    "about": "Giới thiệu",
+    "retry": "Thử lại",
+    "reload": "Tải lại trang",
+    "close": "Đóng",
+    "open": "Mở",
+    "show": "Hiện",
+    "hide": "Ẩn",
+    "copy": "Sao chép",
+    "paste": "Dán",
+    "cut": "Cắt",
+    "select": "Chọn",
+    "selectAll": "Chọn tất cả",
+    "clear": "Xóa",
+    "undo": "Hoàn tác",
+    "redo": "Làm lại"
+  },
+  "auth": {
+    "loginTitle": "Đăng nhập vào SecureVault",
+    "loginSubtitle": "Truy cập kho lưu trữ bảo mật của bạn",
+    "registerTitle": "Tạo tài khoản SecureVault",
+    "registerSubtitle": "Bắt đầu hành trình bảo mật của bạn",
+    "emailPlaceholder": "Nhập địa chỉ email của bạn",
+    "passwordPlaceholder": "Nhập mật khẩu của bạn",
+    "firstNamePlaceholder": "Nhập tên của bạn",
+    "lastNamePlaceholder": "Nhập họ của bạn",
+    "confirmPassword": "Xác nhận mật khẩu",
+    "confirmPasswordPlaceholder": "Nhập lại mật khẩu",
+    "rememberMe": "Ghi nhớ đăng nhập",
+    "forgotPassword": "Quên mật khẩu?",
+    "dontHaveAccount": "Chưa có tài khoản?",
+    "alreadyHaveAccount": "Đã có tài khoản?",
+    "loginWith": "Đăng nhập với",
+    "orContinueWith": "Hoặc tiếp tục với",
+    "agreeToTerms": "Tôi đồng ý với",
+    "termsOfService": "Điều khoản dịch vụ",
+    "privacyPolicy": "Chính sách bảo mật",
+    "and": "và",
+    "loginSuccess": "Đăng nhập thành công",
+    "registerSuccess": "Đăng ký thành công",
+    "loginFailed": "Đăng nhập thất bại",
+    "registerFailed": "Đăng ký thất bại",
+    "invalidCredentials": "Thông tin đăng nhập không đúng",
+    "passwordTooWeak": "Mật khẩu quá yếu",
+    "passwordMismatch": "Mật khẩu không khớp",
+    "emailAlreadyExists": "Email đã tồn tại",
+    "emailRequired": "Email là bắt buộc",
+    "passwordRequired": "Mật khẩu là bắt buộc",
+    "firstNameRequired": "Tên là bắt buộc",
+    "lastNameRequired": "Họ là bắt buộc",
+    "mustAgreeToTerms": "Bạn phải đồng ý với điều khoản dịch vụ",
+    "mfaRequired": "Yêu cầu xác thực đa yếu tố",
+    "enterMfaCode": "Nhập mã xác thực",
+    "mfaCodePlaceholder": "Nhập mã 6 chữ số",
+    "verifyMfaCode": "Xác thực mã",
+    "invalidMfaCode": "Mã xác thực không đúng",
+    "biometricAuth": "Xác thực sinh trắc học",
+    "useBiometric": "Sử dụng sinh trắc học",
+    "biometricPrompt": "Sử dụng vân tay hoặc Face ID để xác thực",
+    "biometricNotSupported": "Thiết bị không hỗ trợ sinh trắc học",
+    "biometricFailed": "Xác thực sinh trắc học thất bại"
+  },
+  "vault": {
+    "title": "Kho lưu trữ của tôi",
+    "subtitle": "Quản lý thông tin bảo mật của bạn",
+    "addItem": "Thêm mục",
+    "addFolder": "Thêm thư mục",
+    "searchPlaceholder": "Tìm kiếm trong kho lưu trữ...",
+    "noItems": "Chưa có mục nào trong kho lưu trữ",
+    "noItemsDescription": "Thêm mật khẩu, ghi chú bảo mật hoặc thông tin khác để bắt đầu",
+    "itemTypes": {
+      "password": "Mật khẩu",
+      "secure_note": "Ghi chú bảo mật",
+      "credit_card": "Thẻ tín dụng",
+      "identity": "Danh tính",
+      "crypto_key": "Khóa mật mã",
+      "file": "Tệp tin"
+    },
+    "fields": {
+      "name": "Tên",
+      "username": "Tên đăng nhập",
+      "password": "Mật khẩu",
+      "url": "URL",
+      "notes": "Ghi chú",
+      "cardholderName": "Tên chủ thẻ",
+      "cardNumber": "Số thẻ",
+      "expiryDate": "Ngày hết hạn",
+      "cvv": "CVV",
+      "fullName": "Họ và tên",
+      "email": "Email",
+      "phone": "Điện thoại",
+      "address": "Địa chỉ",
+      "keyType": "Loại khóa",
+      "publicKey": "Khóa công khai",
+      "privateKey": "Khóa riêng tư",
+      "filename": "Tên tệp",
+      "fileSize": "Kích thước tệp",
+      "folder": "Thư mục"
+    },
+    "actions": {
+      "copyUsername": "Sao chép tên đăng nhập",
+      "copyPassword": "Sao chép mật khẩu",
+      "viewPassword": "Xem mật khẩu",
+      "hidePassword": "Ẩn mật khẩu",
+      "generatePassword": "Tạo mật khẩu",
+      "editItem": "Sửa mục",
+      "deleteItem": "Xóa mục",
+      "moveToFolder": "Di chuyển đến thư mục",
+      "share": "Chia sẻ",
+      "favorite": "Yêu thích",
+      "unfavorite": "Bỏ yêu thích",
+      "viewDetails": "Xem chi tiết",
+      "downloadFile": "Tải xuống tệp"
+    },
+    "messages": {
+      "itemCreated": "Mục đã được tạo thành công",
+      "itemUpdated": "Mục đã được cập nhật thành công",
+      "itemDeleted": "Mục đã được xóa thành công",
+      "folderCreated": "Thư mục đã được tạo thành công",
+      "folderDeleted": "Thư mục đã được xóa thành công",
+      "passwordCopied": "Mật khẩu đã được sao chép",
+      "usernameCopied": "Tên đăng nhập đã được sao chép",
+      "deleteConfirm": "Bạn có chắc chắn muốn xóa mục này?",
+      "deleteWarning": "Hành động này không thể hoàn tác",
+      "emptyFolder": "Thư mục trống",
+      "itemNotFound": "Không tìm thấy mục",
+      "accessDenied": "Truy cập bị từ chối",
+      "encryptionError": "Lỗi mã hóa",
+      "decryptionError": "Lỗi giải mã"
+    }
+  },
+  "passwordGenerator": {
+    "title": "Tạo mật khẩu",
+    "length": "Độ dài",
+    "options": "Tùy chọn",
+    "includeUppercase": "Chữ hoa (A-Z)",
+    "includeLowercase": "Chữ thường (a-z)", 
+    "includeNumbers": "Số (0-9)",
+    "includeSymbols": "Ký hiệu (!@#$)",
+    "excludeSimilar": "Loại trừ ký tự tương tự",
+    "excludeAmbiguous": "Loại trừ ký tự gây nhầm lẫn",
+    "generate": "Tạo mật khẩu",
+    "regenerate": "Tạo lại",
+    "strength": "Độ mạnh",
+    "strengthLevels": {
+      "veryWeak": "Rất yếu",
+      "weak": "Yếu", 
+      "fair": "Khá",
+      "good": "Tốt",
+      "strong": "Mạnh",
+      "veryStrong": "Rất mạnh"
+    },
+    "tips": {
+      "title": "Mẹo về mật khẩu",
+      "tip1": "Sử dụng ít nhất 14 ký tự",
+      "tip2": "Kết hợp chữ hoa, chữ thường, số và ký hiệu",
+      "tip3": "Tránh thông tin cá nhân",
+      "tip4": "Sử dụng mật khẩu khác nhau cho mỗi tài khoản",
+      "tip5": "Cập nhật mật khẩu định kỳ"
+    }
+  },
+  "security": {
+    "title": "Bảo mật",
+    "mfa": {
+      "title": "Xác thực đa yếu tố",
+      "description": "Thêm lớp bảo mật bổ sung cho tài khoản của bạn",
+      "enable": "Bật MFA",
+      "disable": "Tắt MFA",
+      "setup": "Thiết lập MFA",
+      "methods": {
+        "totp": "Ứng dụng xác thực (TOTP)",
+        "sms": "Tin nhắn SMS",
+        "email": "Email",
+        "biometric": "Sinh trắc học",
+        "fido2": "Khóa bảo mật FIDO2"
+      },
+      "totpInstructions": {
+        "step1": "Cài đặt ứng dụng xác thực như Google Authenticator",
+        "step2": "Quét mã QR hoặc nhập khóa bí mật",
+        "step3": "Nhập mã 6 chữ số từ ứng dụng"
+      },
+      "backupCodes": {
+        "title": "Mã khôi phục",
+        "description": "Lưu những mã này ở nơi an toàn. Mỗi mã chỉ sử dụng được một lần.",
+        "generate": "Tạo mã khôi phục",
+        "download": "Tải xuống",
+        "print": "In",
+        "used": "Đã sử dụng"
+      }
+    },
+    "sessions": {
+      "title": "Phiên đăng nhập",
+      "current": "Phiên hiện tại",
+      "active": "Phiên hoạt động",
+      "device": "Thiết bị",
+      "location": "Vị trí",
+      "lastActive": "Hoạt động lần cuối",
+      "terminate": "Kết thúc phiên",
+      "terminateAll": "Kết thúc tất cả phiên khác"
+    },
+    "passwordPolicy": {
+      "title": "Chính sách mật khẩu",
+      "minLength": "Độ dài tối thiểu",
+      "requireUppercase": "Yêu cầu chữ hoa",
+      "requireLowercase": "Yêu cầu chữ thường",
+      "requireNumbers": "Yêu cầu số",
+      "requireSymbols": "Yêu cầu ký hiệu",
+      "passwordExpiry": "Hết hạn mật khẩu",
+      "passwordHistory": "Lịch sử mật khẩu"
+    },
+    "encryption": {
+      "title": "Mã hóa",
+      "status": "Trạng thái mã hóa",
+      "keyRotation": "Xoay khóa mã hóa",
+      "lastRotation": "Xoay khóa lần cuối",
+      "nextRotation": "Xoay khóa tiếp theo",
+      "algorithm": "Thuật toán",
+      "keyLength": "Độ dài khóa"
+    }
+  },
+  "dashboard": {
+    "title": "Bảng điều khiển",
+    "overview": "Tổng quan",
+    "recentItems": "Mục gần đây",
+    "quickActions": "Thao tác nhanh",
+    "securityStatus": "Tình trạng bảo mật",
+    "vaultSummary": {
+      "totalItems": "Tổng số mục",
+      "weakPasswords": "Mật khẩu yếu",
+      "duplicatePasswords": "Mật khẩu trùng lặp",
+      "expiredItems": "Mục hết hạn"
+    },
+    "securityScore": {
+      "title": "Điểm bảo mật",
+      "excellent": "Xuất sắc",
+      "good": "Tốt",
+      "fair": "Khá",
+      "poor": "Kém",
+      "recommendations": "Khuyến nghị"
+    },
+    "activity": {
+      "title": "Hoạt động gần đây",
+      "login": "Đăng nhập",
+      "itemCreated": "Tạo mục",
+      "itemUpdated": "Cập nhật mục",
+      "passwordChanged": "Đổi mật khẩu",
+      "mfaEnabled": "Bật MFA",
+      "sessionTerminated": "Kết thúc phiên"
+    }
+  },
+  "backup": {
+    "title": "Sao lưu & Khôi phục",
+    "createBackup": "Tạo sao lưu",
+    "restoreBackup": "Khôi phục sao lưu",
+    "backupHistory": "Lịch sử sao lưu",
+    "autoBackup": "Sao lưu tự động",
+    "backupTypes": {
+      "full": "Sao lưu đầy đủ",
+      "incremental": "Sao lưu gia tăng",
+      "differential": "Sao lưu khác biệt"
+    },
+    "status": {
+      "pending": "Đang chờ",
+      "running": "Đang chạy",
+      "completed": "Hoàn thành",
+      "failed": "Thất bại",
+      "verifying": "Đang xác thực"
+    },
+    "settings": {
+      "schedule": "Lịch trình",
+      "retention": "Thời gian lưu trữ",
+      "encryption": "Mã hóa sao lưu",
+      "compression": "Nén dữ liệu",
+      "verification": "Xác thực tính toàn vẹn"
+    },
+    "disasterRecovery": {
+      "title": "Khôi phục thảm họa",
+      "plans": "Kế hoạch khôi phục",
+      "rto": "Mục tiêu thời gian khôi phục (RTO)",
+      "rpo": "Mục tiêu điểm khôi phục (RPO)", 
+      "testDR": "Kiểm tra DR",
+      "lastTest": "Kiểm tra lần cuối"
+    }
+  },
+  "monitoring": {
+    "title": "Giám sát",
+    "performance": "Hiệu suất",
+    "alerts": "Cảnh báo",
+    "metrics": "Số liệu",
+    "health": "Sức khỏe hệ thống",
+    "status": {
+      "healthy": "Khỏe mạnh",
+      "warning": "Cảnh báo", 
+      "critical": "Nghiêm trọng",
+      "offline": "Ngoại tuyến"
+    },
+    "systemMetrics": {
+      "cpu": "CPU",
+      "memory": "Bộ nhớ",
+      "disk": "Ổ đĩa",
+      "network": "Mạng",
+      "database": "Cơ sở dữ liệu"
+    },
+    "alerts": {
+      "acknowledge": "Xác nhận",
+      "resolve": "Giải quyết",
+      "severity": {
+        "low": "Thấp",
+        "medium": "Trung bình",
+        "high": "Cao", 
+        "critical": "Nghiêm trọng"
+      }
+    }
+  },
+  "admin": {
+    "title": "Quản trị",
+    "users": {
+      "title": "Quản lý người dùng",
+      "addUser": "Thêm người dùng",
+      "editUser": "Sửa người dùng",
+      "deleteUser": "Xóa người dùng",
+      "suspendUser": "Tạm ngưng người dùng",
+      "activateUser": "Kích hoạt người dùng",
+      "resetPassword": "Đặt lại mật khẩu",
+      "roles": {
+        "basic_user": "Người dùng cơ bản",
+        "premium_user": "Người dùng cao cấp",
+        "team_member": "Thành viên nhóm",
+        "vault_admin": "Quản trị kho",
+        "security_admin": "Quản trị bảo mật",
+        "super_admin": "Siêu quản trị"
+      },
+      "status": {
+        "active": "Hoạt động",
+        "pending": "Đang chờ",
+        "suspended": "Tạm ngưng",
+        "deactive": "Không hoạt động"
+      }
+    },
+    "security": {
+      "title": "Bảo mật hệ thống",
+      "incidents": "Sự cố bảo mật",
+      "threats": "Mối đe dọa",
+      "blockedIPs": "IP bị chặn",
+      "auditLogs": "Nhật ký kiểm toán",
+      "policies": "Chính sách bảo mật"
+    },
+    "system": {
+      "title": "Hệ thống",
+      "settings": "Cài đặt hệ thống",
+      "maintenance": "Bảo trì",
+      "updates": "Cập nhật",
+      "logs": "Nhật ký hệ thống"
+    }
+  },
+  "settings": {
+    "title": "Cài đặt",
+    "account": "Tài khoản",
+    "security": "Bảo mật",
+    "preferences": "Tùy chọn",
+    "notifications": "Thông báo",
+    "privacy": "Quyền riêng tư",
+    "language": "Ngôn ngữ",
+    "theme": "Giao diện",
+    "themes": {
+      "light": "Sáng",
+      "dark": "Tối",
+      "system": "Theo hệ thống"
+    },
+    "timezone": "múi giờ",
+    "dateFormat": "Định dạng ngày",
+    "timeFormat": "Định dạng thời gian",
+    "notifications": {
+      "email": "Email",
+      "push": "Đẩy",
+      "sms": "SMS",
+      "desktop": "Desktop",
+      "security": "Bảo mật",
+      "marketing": "Marketing"
+    }
+  },
+  "errors": {
+    "general": "Đã xảy ra lỗi",
+    "network": "Lỗi mạng",
+    "server": "Lỗi máy chủ",
+    "authentication": "Lỗi xác thực",
+    "authorization": "Không có quyền truy cập",
+    "notFound": "Không tìm thấy",
+    "validation": "Lỗi xác thực dữ liệu",
+    "timeout": "Hết thời gian chờ",
+    "encryption": "Lỗi mã hóa",
+    "decryption": "Lỗi giải mã",
+    "backup": "Lỗi sao lưu",
+    "restore": "Lỗi khôi phục",
+    "import": "Lỗi nhập dữ liệu",
+    "export": "Lỗi xuất dữ liệu",
+    "genericError": "Đã xảy ra lỗi không mong muốn",
+    "errorBoundaryMessage": "Ứng dụng đã gặp lỗi và không thể tiếp tục. Vui lòng thử lại."
+  },
+  "validation": {
+    "required": "Trường này là bắt buộc",
+    "email": "Email không hợp lệ",
+    "password": "Mật khẩu phải có ít nhất {min} ký tự",
+    "passwordStrength": "Mật khẩu quá yếu",
+    "confirmPassword": "Mật khẩu xác nhận không khớp",
+    "minLength": "Tối thiểu {min} ký tự",
+    "maxLength": "Tối đa {max} ký tự",
+    "numeric": "Chỉ chấp nhận số",
+    "alphanumeric": "Chỉ chấp nhận chữ và số",
+    "url": "URL không hợp lệ",
+    "phone": "Số điện thoại không hợp lệ"
+  },
+  "timeAgo": {
+    "justNow": "Vừa xong",
+    "minutesAgo": "{count} phút trước",
+    "hoursAgo": "{count} giờ trước", 
+    "daysAgo": "{count} ngày trước",
+    "weeksAgo": "{count} tuần trước",
+    "monthsAgo": "{count} tháng trước",
+    "yearsAgo": "{count} năm trước"
+  },
+  "pagination": {
+    "first": "Đầu",
+    "previous": "Trước",
+    "next": "Tiếp",
+    "last": "Cuối",
+    "page": "Trang",
+    "of": "của",
+    "showing": "Hiển thị",
+    "to": "đến",
+    "entries": "mục"
+  }
+}

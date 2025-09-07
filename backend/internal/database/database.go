@@ -1,147 +1,191 @@
 package database
 
 import (
-	"context"
 	"database/sql"
 	"fmt"
+	"log"
 	"time"
 
 	"securevault/internal/config"
+	"securevault/internal/models"
 
-	"github.com/golang-migrate/migrate/v4"
-	"github.com/golang-migrate/migrate/v4/database/postgres"
-	_ "github.com/golang-migrate/migrate/v4/source/file"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
+	"gorm.io/gorm/logger"
 )
 
-var db *sql.DB
+var DB *gorm.DB
 
-// InitDB initializes the database connection
-func InitDB(cfg *config.Config) (*sql.DB, error) {
-	var err error
-
-	// Parse connection string
-	connStr, err := buildConnectionString(cfg)
-	if err != nil {
-		return nil, fmt.Errorf("failed to build connection string: %w", err)
+// InitDB initializes the database connection and runs migrations
+func InitDB(cfg *config.Config) *gorm.DB {
+	var dsn string
+	if cfg.Database.URL != "" {
+		dsn = cfg.Database.URL
+	} else {
+		log.Fatal("Database URL is required in configuration")
 	}
 
-	// Open database connection
-	db, err = sql.Open("postgres", connStr)
+	// Configure GORM logger
+	gormLogger := logger.Default
+	if cfg.Server.Environment == "production" {
+		gormLogger = logger.Default.LogMode(logger.Silent)
+	}
+
+	var err error
+	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{
+		Logger: gormLogger,
+		NowFunc: func() time.Time {
+			return time.Now().UTC()
+		},
+	})
 	if err != nil {
-		return nil, fmt.Errorf("failed to open database: %w", err)
+		log.Fatalf("Failed to connect to database: %v", err)
+	}
+
+	// Get underlying SQL DB for connection pooling
+	sqlDB, err := DB.DB()
+	if err != nil {
+		log.Fatalf("Failed to get underlying sql.DB: %v", err)
 	}
 
 	// Configure connection pool
-	db.SetMaxOpenConns(cfg.Database.MaxOpenConns)
-	db.SetMaxIdleConns(cfg.Database.MaxIdleConns)
-	db.SetConnMaxLifetime(cfg.Database.ConnMaxLifetime)
+	sqlDB.SetMaxOpenConns(25)
+	sqlDB.SetMaxIdleConns(5)
+	sqlDB.SetConnMaxLifetime(5 * time.Minute)
 
 	// Test connection
-	if err := db.Ping(); err != nil {
-		return nil, fmt.Errorf("failed to ping database: %w", err)
+	if err := sqlDB.Ping(); err != nil {
+		log.Fatalf("Failed to ping database: %v", err)
 	}
 
-	return db, nil
+	log.Println("Database connection established successfully")
+
+	// Run auto-migration
+	if err := AutoMigrate(); err != nil {
+		log.Fatalf("Failed to run migrations: %v", err)
+	}
+
+	return DB
+}
+
+// AutoMigrate runs database migrations
+func AutoMigrate() error {
+	// Enable UUID extension
+	if err := DB.Exec("CREATE EXTENSION IF NOT EXISTS \"uuid-ossp\"").Error; err != nil {
+		return fmt.Errorf("failed to create uuid extension: %v", err)
+	}
+
+	// Disable foreign key checks during migration
+	DB.Exec("SET session_replication_role = replica")
+	
+	// Auto migrate all models
+	err := DB.AutoMigrate(
+		// RBAC models first (dependencies)
+		&models.Permission{},
+		&models.Role{},
+		&models.RolePermission{},
+		&models.RoleHierarchy{},
+		&models.PermissionTemplate{},
+		// User models (depend on roles)
+		&models.User{},
+		&models.UserPermissionOverride{},
+		&models.Session{},
+		&models.MFACredential{},
+		// Vault models (depend on users)
+		&models.VaultItem{},
+		&models.VaultFolder{},
+		// Other models
+		&models.AuditLog{},
+		&models.PasswordPolicy{},
+		&models.SecurityEvent{},
+		&models.ComplianceReport{},
+	)
+	if err != nil {
+		return fmt.Errorf("failed to auto migrate: %v", err)
+	}
+
+	// Re-enable foreign key checks
+	DB.Exec("SET session_replication_role = DEFAULT")
+
+	// Create indexes
+	if err := createIndexes(); err != nil {
+		return fmt.Errorf("failed to create indexes: %v", err)
+	}
+
+	log.Println("Database migrations completed successfully")
+	return nil
+}
+
+// createIndexes creates additional database indexes for performance
+func createIndexes() error {
+	// Users table indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_users_email ON users(email)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_users_status ON users(status)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_users_role ON users(role)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_users_created_at ON users(created_at)")
+
+	// Sessions table indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sessions_user_id ON sessions(user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sessions_expires_at ON sessions(expires_at)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_sessions_token_hash ON sessions(token_hash)")
+
+	// Vault items table indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_vault_items_user_id ON vault_items(user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_vault_items_folder_id ON vault_items(folder_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_vault_items_type ON vault_items(type)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_vault_items_created_at ON vault_items(created_at)")
+
+	// Audit logs table indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audit_logs_user_id ON audit_logs(user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audit_logs_action ON audit_logs(action)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_audit_logs_timestamp ON audit_logs(timestamp)")
+
+	// RBAC table indexes
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_permissions_name ON permissions(name)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_permissions_resource ON permissions(resource)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_permissions_category ON permissions(category)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_roles_name ON roles(name)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_roles_level ON roles(level)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_role_permissions_role_id ON role_permissions(role_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_role_permissions_permission_id ON role_permissions(permission_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_user_permission_overrides_user_id ON user_permission_overrides(user_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_user_permission_overrides_permission_id ON user_permission_overrides(permission_id)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_role_hierarchy_parent ON role_hierarchies(parent_role)")
+	DB.Exec("CREATE INDEX IF NOT EXISTS idx_role_hierarchy_child ON role_hierarchies(child_role)")
+
+	return nil
 }
 
 // CloseDB closes the database connection
-func CloseDB(db *sql.DB) error {
-	if db != nil {
-		return db.Close()
+func CloseDB() error {
+	sqlDB, err := DB.DB()
+	if err != nil {
+		return err
 	}
-	return nil
+	return sqlDB.Close()
 }
 
 // GetDB returns the database instance
-func GetDB() *sql.DB {
-	return db
+func GetDB() *gorm.DB {
+	return DB
 }
 
-// RunMigrations runs database migrations
-func RunMigrations(databaseURL string) error {
-	// Create database connection for migrations
-	db, err := sql.Open("postgres", databaseURL)
+// HealthCheck checks database connectivity
+func HealthCheck() error {
+	sqlDB, err := DB.DB()
 	if err != nil {
-		return fmt.Errorf("failed to connect to database for migrations: %w", err)
+		return err
 	}
-	defer db.Close()
-
-	// Create migrate driver
-	driver, err := postgres.WithInstance(db, &postgres.Config{})
-	if err != nil {
-		return fmt.Errorf("failed to create migrate driver: %w", err)
-	}
-
-	// Create migrate instance
-	m, err := migrate.NewWithDatabaseInstance(
-		"file://migrations",
-		"postgres",
-		driver,
-	)
-	if err != nil {
-		return fmt.Errorf("failed to create migrate instance: %w", err)
-	}
-
-	// Run migrations
-	if err := m.Up(); err != nil && err != migrate.ErrNoChange {
-		return fmt.Errorf("failed to run migrations: %w", err)
-	}
-
-	return nil
+	return sqlDB.Ping()
 }
 
-// buildConnectionString builds a PostgreSQL connection string
-func buildConnectionString(cfg *config.Config) (string, error) {
-	if cfg.Database.URL != "" {
-		return cfg.Database.URL, nil
-	}
-
-	// Build connection string from individual components
-	// This would be implemented if using separate host, port, etc.
-	return "", fmt.Errorf("database URL is required")
-}
-
-// HealthCheck checks if the database is healthy
-func HealthCheck(db *sql.DB) error {
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-	defer cancel()
-
-	if err := db.PingContext(ctx); err != nil {
-		return fmt.Errorf("database health check failed: %w", err)
-	}
-
-	return nil
-}
-
-// BeginTx begins a database transaction
-func BeginTx(db *sql.DB) (*sql.Tx, error) {
-	return db.Begin()
+// GetStats returns database connection statistics
+func GetStats() sql.DBStats {
+	sqlDB, _ := DB.DB()
+	return sqlDB.Stats()
 }
 
 // WithTransaction executes a function within a database transaction
-func WithTransaction(db *sql.DB, fn func(*sql.Tx) error) error {
-	tx, err := db.Begin()
-	if err != nil {
-		return fmt.Errorf("failed to begin transaction: %w", err)
-	}
-
-	defer func() {
-		if p := recover(); p != nil {
-			tx.Rollback()
-			panic(p)
-		}
-	}()
-
-	if err := fn(tx); err != nil {
-		if rbErr := tx.Rollback(); rbErr != nil {
-			return fmt.Errorf("failed to rollback transaction: %v (original error: %w)", rbErr, err)
-		}
-		return err
-	}
-
-	if err := tx.Commit(); err != nil {
-		return fmt.Errorf("failed to commit transaction: %w", err)
-	}
-
-	return nil
+func WithTransaction(fn func(*gorm.DB) error) error {
+	return DB.Transaction(fn)
 }

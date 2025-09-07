@@ -1,0 +1,239 @@
+{
+  "auth": {
+    "login": "Login",
+    "register": "Register",
+    "logout": "Logout",
+    "email": "Email",
+    "password": "Password",
+    "confirmPassword": "Confirm Password",
+    "forgotPassword": "Forgot Password?",
+    "resetPassword": "Reset Password",
+    "loginSuccess": "Login successful",
+    "registerSuccess": "Registration successful",
+    "invalidCredentials": "Invalid email or password",
+    "emailRequired": "Email is required",
+    "passwordRequired": "Password is required",
+    "passwordMismatch": "Passwords do not match",
+    "weakPassword": "Password is too weak",
+    "emailInvalid": "Invalid email format",
+    "accountLocked": "Account is locked due to too many failed attempts",
+    "mfaRequired": "Multi-factor authentication required",
+    "sessionExpired": "Session has expired. Please login again"
+  },
+  "vault": {
+    "title": "SecureVault",
+    "dashboard": "Dashboard",
+    "myVault": "My Vault",
+    "addItem": "Add Item",
+    "editItem": "Edit Item",
+    "deleteItem": "Delete Item",
+    "searchPlaceholder": "Search vault items...",
+    "category": "Category",
+    "categories": {
+      "login": "Logins",
+      "card": "Credit Cards",
+      "note": "Secure Notes",
+      "identity": "Identities",
+      "document": "Documents"
+    },
+    "fields": {
+      "name": "Name",
+      "username": "Username",
+      "password": "Password",
+      "email": "Email",
+      "url": "Website URL",
+      "notes": "Notes",
+      "cardNumber": "Card Number",
+      "expiryDate": "Expiry Date",
+      "cvv": "CVV",
+      "cardholderName": "Cardholder Name",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone Number",
+      "address": "Address",
+      "ssn": "Social Security Number"
+    },
+    "actions": {
+      "save": "Save",
+      "cancel": "Cancel",
+      "edit": "Edit",
+      "delete": "Delete",
+      "copy": "Copy",
+      "view": "View",
+      "generate": "Generate Password",
+      "share": "Share",
+      "favorite": "Add to Favorites",
+      "export": "Export"
+    },
+    "messages": {
+      "itemAdded": "Item added successfully",
+      "itemUpdated": "Item updated successfully",
+      "itemDeleted": "Item deleted successfully",
+      "itemCopied": "Copied to clipboard",
+      "noItems": "No vault items found",
+      "loading": "Loading...",
+      "error": "An error occurred",
+      "confirmDelete": "Are you sure you want to delete this item?"
+    }
+  },
+  "security": {
+    "title": "Security Settings",
+    "mfa": "Multi-Factor Authentication",
+    "biometric": "Biometric Authentication",
+    "totp": "Time-based OTP",
+    "sms": "SMS Authentication",
+    "fido2": "FIDO2/WebAuthn",
+    "enable": "Enable",
+    "disable": "Disable",
+    "setup": "Setup",
+    "verify": "Verify",
+    "qrCode": "QR Code",
+    "backupCodes": "Backup Codes",
+    "passwordStrength": {
+      "weak": "Weak",
+      "medium": "Medium",
+      "strong": "Strong",
+      "veryStrong": "Very Strong"
+    },
+    "passwordPolicy": {
+      "minLength": "Minimum 12 characters",
+      "uppercase": "At least one uppercase letter",
+      "lowercase": "At least one lowercase letter",
+      "number": "At least one number",
+      "special": "At least one special character",
+      "noCommon": "Not a common password",
+      "noPersonal": "No personal information"
+    },
+    "encryption": {
+      "title": "Encryption Settings",
+      "keyRotation": "Key Rotation",
+      "quantumResistant": "Quantum-Resistant Encryption",
+      "zeroKnowledge": "Zero-Knowledge Architecture",
+      "lastRotation": "Last rotation",
+      "nextRotation": "Next rotation",
+      "rotateNow": "Rotate Now"
+    },
+    "auditLog": {
+      "title": "Audit Log",
+      "action": "Action",
+      "timestamp": "Timestamp",
+      "ipAddress": "IP Address",
+      "userAgent": "User Agent",
+      "result": "Result"
+    }
+  },
+  "dashboard": {
+    "overview": "Overview",
+    "stats": {
+      "totalItems": "Total Items",
+      "recentActivity": "Recent Activity",
+      "securityScore": "Security Score",
+      "weakPasswords": "Weak Passwords",
+      "expiredItems": "Expired Items",
+      "compromisedPasswords": "Compromised Passwords"
+    },
+    "quickActions": "Quick Actions",
+    "recentItems": "Recent Items",
+    "notifications": "Notifications",
+    "securityAlerts": "Security Alerts"
+  },
+  "backup": {
+    "title": "Backup & Recovery",
+    "createBackup": "Create Backup",
+    "restoreBackup": "Restore Backup",
+    "autoBackup": "Automatic Backup",
+    "schedule": "Schedule",
+    "retention": "Retention Policy",
+    "encryption": "Backup Encryption",
+    "verification": "Backup Verification",
+    "lastBackup": "Last Backup",
+    "nextBackup": "Next Backup",
+    "backupSize": "Backup Size",
+    "status": {
+      "completed": "Completed",
+      "inProgress": "In Progress",
+      "failed": "Failed",
+      "scheduled": "Scheduled"
+    }
+  },
+  "monitoring": {
+    "title": "System Monitoring",
+    "performance": "Performance",
+    "alerts": "Alerts",
+    "metrics": {
+      "cpu": "CPU Usage",
+      "memory": "Memory Usage",
+      "disk": "Disk Usage",
+      "network": "Network",
+      "responseTime": "Response Time",
+      "errorRate": "Error Rate"
+    },
+    "alerts": {
+      "high": "High",
+      "medium": "Medium",
+      "low": "Low",
+      "resolved": "Resolved"
+    }
+  },
+  "admin": {
+    "title": "Admin Dashboard",
+    "users": "User Management",
+    "roles": "Role Management",
+    "permissions": "Permissions",
+    "system": "System Settings",
+    "logs": "System Logs",
+    "maintenance": "Maintenance Mode",
+    "userRoles": {
+      "basic_user": "Basic User",
+      "premium_user": "Premium User",
+      "team_member": "Team Member",
+      "vault_admin": "Vault Administrator",
+      "security_admin": "Security Administrator",
+      "super_admin": "Super Administrator"
+    }
+  },
+  "common": {
+    "yes": "Yes",
+    "no": "No",
+    "ok": "OK",
+    "cancel": "Cancel",
+    "save": "Save",
+    "delete": "Delete",
+    "edit": "Edit",
+    "view": "View",
+    "close": "Close",
+    "search": "Search",
+    "filter": "Filter",
+    "sort": "Sort",
+    "loading": "Loading...",
+    "error": "Error",
+    "success": "Success",
+    "warning": "Warning",
+    "info": "Info",
+    "confirm": "Confirm",
+    "settings": "Settings",
+    "profile": "Profile",
+    "help": "Help",
+    "about": "About",
+    "language": "Language",
+    "theme": "Theme"
+  },
+  "errors": {
+    "networkError": "Network connection error",
+    "serverError": "Server error occurred",
+    "unauthorized": "Unauthorized access",
+    "forbidden": "Access forbidden",
+    "notFound": "Resource not found",
+    "validationError": "Validation error",
+    "encryptionError": "Encryption/Decryption error",
+    "backupError": "Backup operation failed",
+    "restoreError": "Restore operation failed",
+    "mfaError": "Multi-factor authentication error",
+    "biometricError": "Biometric authentication failed",
+    "sessionError": "Session management error",
+    "permissionDenied": "Permission denied",
+    "rateLimited": "Too many requests, please try again later",
+    "maintenanceMode": "System is under maintenance",
+    "genericError": "An unexpected error occurred"
+  }
+}
